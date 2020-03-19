@@ -30,3 +30,4 @@ All other prerequisites are managed by the initialise script as documented in th
 - The client wants the behaviour where on every new deployment, the app database is 'reset' by dropping the tasks table and reseeding.
 - CloudSQL specs (CPU and RAM) have been left quite modest in all possible configurations (may need revisiting once the app gets super popular!)
 - A hardcoded **lowercase** repo name is set in the cloud build file, I'm unaware of a way to expose a variable or calculated value during a build step to the cloud build file (to set the artifacts key in cloudbuild.yaml)
+- Database name ('app'), if changed in the config.toml, will be adjusted elsewhere in the build pipeline (create-sql-database)
