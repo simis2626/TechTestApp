@@ -23,7 +23,14 @@ if [ $db_exists -eq 0 ]; then
     # Written in plaintext on the working dir (which isn't persisted after a Cloud Build execution)
     root_password=$(cat /proc/sys/kernel/random/uuid | tr -d "-")
     echo -n $root_password > $_DB_PASSWORD_FILE
-
+    # Encrypt the password, and store directly in GCS to avoid issues where DB is created, but full pipeline doesn't finish so password is never saved.
+    echo -n $root_password | gcloud kms encrypt \
+            --plaintext-file=- \
+            --ciphertext-file=- \
+            --location=global \
+            --keyring=kms-${PROJECT_ID}-techtestapp \
+            --key=cloudsql-updatedb | \
+            gsutil cp - gs://${PROJECT_ID}-${REPO_NAME}/${_APP_ENV}/${BRANCH_NAME}/db-postgres-pwd.enc
 
     # Test allows the cloudSQL instance to spin down (not setting activation policy)
     # ssl set to ensure security of data and passwords.
@@ -62,13 +69,7 @@ if [ $db_exists -eq 0 ]; then
         "${INSTANCE_NAME}" \
         $ARGS
     
-    # Encrypt the password, and store in the artefacts dir so user can retrieve from GCS and decrypt if debugging required.
-    echo -n $root_password | gcloud kms encrypt \
-            --plaintext-file=- \
-            --ciphertext-file=$ARTEFACTS_DIR/db-postgres-pwd.enc \
-            --location=global \
-            --keyring=kms-${PROJECT_ID}-techtestapp \
-            --key=cloudsql-updatedb 
+    
     echo -e "Database password is encrypted with kms keyring: kms-${PROJECT_ID}-techtestapp \nUsing Key: cloudsql-updatedb\nStored in: db-postgres-pwd.enc "
 
     #Don't know enough about the application to determine a suitable maintainence window.
