@@ -1,5 +1,6 @@
 #!/bin/bash
-#
+# This script manages creation of the CloudSQL instance 
+# and the management of secrets and SSL certs for connecting to the DB for debugging purposes.
 
 # Variables
 INSTANCE_NAME=$(cat $_DB_INSTANCE_SAFE_FILE)
@@ -18,9 +19,15 @@ db_exists=$(gcloud sql instances list | grep -e "^${INSTANCE_NAME}\s" | wc -l)
 if [ $db_exists -eq 0 ]; then
     echo -e "Creating CloudSQL instance: \n Instance Name: ${INSTANCE_NAME}\n Environment: ${APP_ENV}\n GCP Project: ${PROJECT_ID}"
 
+    # Get some random alphanum from machine, strip hyphens for CloudSQL postgres user password.
+    # Written in plaintext on the working dir (which isn't persisted after a Cloud Build execution)
     root_password=$(cat /proc/sys/kernel/random/uuid | tr -d "-")
     echo -n $root_password > $_DB_PASSWORD_FILE
 
+
+    # Test allows the cloudSQL instance to spin down (not setting activation policy)
+    # ssl set to ensure security of data and passwords.
+    # No Available networks, means no IP connectivity. (only unix sockets)
     TEST_ARGS="--availability-type=zonal \
         --database-version=POSTGRES_11 \
         --maintenance-release-channel=production \
@@ -55,7 +62,7 @@ if [ $db_exists -eq 0 ]; then
         "${INSTANCE_NAME}" \
         $ARGS
     
-
+    # Encrypt the password, and store in the artefacts dir so user can retrieve from GCS and decrypt if debugging required.
     echo -n $root_password | gcloud kms encrypt \
             --plaintext-file=- \
             --ciphertext-file=$ARTEFACTS_DIR/db-postgres-pwd.enc \

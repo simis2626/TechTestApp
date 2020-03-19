@@ -33,6 +33,7 @@ fi
 db_instance_name=$(cat $_DB_INSTANCE_SAFE_FILE)
 db_password=$(cat $_DB_PASSWORD_FILE)
 
+# writable dir to mount the shared unix sockets.
 mkdir csql
 
 # Start the docker proxy using the credential file decrypted using kms.

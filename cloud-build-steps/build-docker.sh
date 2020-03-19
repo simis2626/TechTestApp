@@ -16,7 +16,7 @@ if [ -z $BUILD_ID ]; then
 fi
 
 
-
+# Latest tag is added to try and enable better build caching for next time (but doesn't seem to do much because of the builder pattern)
 docker build -t asia.gcr.io/$PROJECT_ID/$REPO_NAME:$BUILD_ID \
              -t asia.gcr.io/$PROJECT_ID/$REPO_NAME:latest \
              --cache-from asia.gcr.io/$PROJECT_ID/$REPO_NAME:latest \
