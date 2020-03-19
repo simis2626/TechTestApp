@@ -106,4 +106,4 @@ steps:
     - 'create-sql-database'
     - 'update-db'
   args: ['./cloud-build-steps/deploy-cloud-run.sh']
-images: ['asia.gcr.io/$PROJECT_ID/$REPO_NAME:$BUILD_ID','asia.gcr.io/$PROJECT_ID/$REPO_NAME:latest']
+images: ['asia.gcr.io/$PROJECT_ID/${REPO_NAME,,}:$BUILD_ID','asia.gcr.io/$PROJECT_ID/${REPO_NAME,,}:latest']
