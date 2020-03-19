@@ -1,0 +1,9 @@
+# Cloudbuild file to determine the workflow to deploy the TechTestApp
+# HL Steps
+# 1. VPC setup?
+# 2. Deploy CloudSQL
+# 3. Add database (schema)
+# 4. Docker build app
+# 4. run TechTestApp updatedb (Seed DB)
+# 5. Deploy docker image to Cloud Run.
+#
