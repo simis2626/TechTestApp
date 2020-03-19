@@ -17,7 +17,7 @@ db_exists=$(gcloud sql instances list | grep -e "^${INSTANCE_NAME}\s" | wc -l)
 
 # Only create new CloudSQL instance if doesn't already exist.
 if [ $db_exists -eq 0 ]; then
-    echo -e "Creating CloudSQL instance: \n Instance Name: ${INSTANCE_NAME}\n Environment: ${APP_ENV}\n GCP Project: ${PROJECT_ID}"
+    echo -e "Creating CloudSQL instance: \n Instance Name: ${INSTANCE_NAME}\n Environment: ${_APP_ENV}\n GCP Project: ${PROJECT_ID}"
 
     # Get some random alphanum from machine, strip hyphens for CloudSQL postgres user password.
     # Written in plaintext on the working dir (which isn't persisted after a Cloud Build execution)
