@@ -73,7 +73,7 @@ steps:
   id: 'publish-docker'
   waitFor: 
     - 'build-docker'
-  args: ['push', 'asia.gcr.io/$PROJECT_ID/$REPO_NAME:$BUILD_ID']
+  args: ['push', 'asia.gcr.io/$PROJECT_ID/$_REPO_NAME:$BUILD_ID']
 - name: 'gcr.io/cloud-builders/docker'
   id: 'update-db'
   waitFor: 
