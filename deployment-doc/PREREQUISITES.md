@@ -22,5 +22,10 @@ $ gcloud config set project <project_id>
 Updated property [core/project].
 ```
 
-
 All other prerequisites are managed by the initialise script as documented in the [process instructions](PROCESS_INSTRUCTIONS.md).
+
+# Assumptions
+- The client has no data soverignty issues: As Cloud Run isn't available in australia, I am using asia-east1.
+- The client will manage the removal of unneeded CloudSQL Instances (i.e. for old branches)
+- The client wants the behaviour where on every new deployment, the app database is 'reset' by dropping the tasks table and reseeding.
+- CloudSQL specs (CPU and RAM) have been left quite modest in all possible configurations (may need revisiting once the app gets super popular!)
