@@ -41,8 +41,8 @@ type Config struct {
 }
 
 func getDbInfo(cfg Config) string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPassword, cfg.DbName)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		cfg.DbHost, cfg.DbUser, cfg.DbPassword, cfg.DbName)
 }
 
 // RebuildDb drops the database and recreates it

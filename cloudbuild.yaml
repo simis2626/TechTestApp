@@ -1,0 +1,118 @@
+# Cloudbuild file to determine the workflow to deploy the TechTestApp
+# HL Steps
+# 2. Deploy CloudSQL
+# 3. Add database (schema)
+# 4. Docker build app
+# 4. Run TechTestApp updatedb (Seed DB)
+# 5. Deploy docker image to Cloud Run.
+#
+steps:
+- name: 'debian'
+  id: 'calc-safe-instance-name'
+  waitFor: 
+    - '-'
+  entrypoint: 'bash'
+  args: ['./cloud-build-steps/calc-safe-instance-name.sh']
+  env:
+    - 'DB_INSTANCE_NAME=${_APP_ENV}-${BRANCH_NAME}'
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'create-gcs-bucket'
+  waitFor: 
+    - '-'
+  entrypoint: 'bash'
+  args: ['./cloud-build-steps/create-gcs-bucket.sh']
+  env:
+    - 'PROJECT_ID=$PROJECT_ID'
+    - 'REPO_NAME=${_REPO_NAME}'
+    - '_GCP_REGION=$_GCP_REGION'
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'decrypt-cloudsql-updatedb-cred'
+  waitFor: 
+    - '-'
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=cloudsql-updatedb.json.enc
+  - --plaintext-file=cloudsql-updatedb.json
+  - --location=global
+  - --keyring=kms-${PROJECT_ID}-techtestapp
+  - --key=cloudsql-updatedb
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'create-cloud-sql'
+  waitFor: 
+    - 'calc-safe-instance-name'
+  entrypoint: 'bash'
+  args: ['./cloud-build-steps/create-cloud-sql.sh']
+  env:
+   - "_DB_INSTANCE_SAFE_FILE=$_DB_INSTANCE_SAFE_FILE"
+   - "_DB_PASSWORD_FILE=$_DB_PASSWORD_FILE"
+   - "PROJECT_ID=$PROJECT_ID"
+   - "_GCP_REGION=$_GCP_REGION"
+   - "REPO_NAME=${_REPO_NAME}"
+   - "_APP_ENV=$_APP_ENV"
+   - "BRANCH_NAME=$BRANCH_NAME"
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'create-sql-database'
+  waitFor: 
+    - 'create-cloud-sql'
+  entrypoint: 'bash'
+  args: ['./cloud-build-steps/create-sql-database.sh']
+  env:
+   - "_DB_INSTANCE_SAFE_FILE=$_DB_INSTANCE_SAFE_FILE"
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'build-docker'
+  waitFor: 
+    - 'calc-safe-instance-name' 
+  entrypoint: 'bash'
+  args: ['./cloud-build-steps/build-docker.sh']
+  env:
+    - 'PROJECT_ID=$PROJECT_ID'
+    - 'REPO_NAME=${_REPO_NAME}'
+    - 'BUILD_ID=$BUILD_ID'
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'publish-docker'
+  waitFor: 
+    - 'build-docker'
+  args: ['push', 'asia.gcr.io/$PROJECT_ID/$_REPO_NAME:$BUILD_ID']
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'update-db'
+  waitFor: 
+    - 'calc-safe-instance-name' 
+    - 'decrypt-cloudsql-updatedb-cred'
+    - 'create-sql-database'
+    - 'publish-docker'
+  entrypoint: 'bash'
+  args: ['./cloud-build-steps/update-db.sh']
+  env:
+    - 'PROJECT_ID=$PROJECT_ID'
+    - 'REPO_NAME=${_REPO_NAME}'
+    - 'BUILD_ID=$BUILD_ID'
+    - "_DB_INSTANCE_SAFE_FILE=$_DB_INSTANCE_SAFE_FILE"
+    - '_GCP_REGION=$_GCP_REGION'
+    - '_DB_PASSWORD_FILE=$_DB_PASSWORD_FILE'
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  env:
+    - 'REPO_NAME=${_REPO_NAME}'
+    - 'PROJECT_ID=$PROJECT_ID'
+    - 'BUILD_ID=$BUILD_ID'
+    - '_GCP_REGION=$_GCP_REGION'
+    - '_DB_INSTANCE_SAFE_FILE=$_DB_INSTANCE_SAFE_FILE'
+    - '_APP_ENV=$_APP_ENV'
+    - '_DB_PASSWORD_FILE=$_DB_PASSWORD_FILE'
+  id: 'deploy-cloud-run'
+  waitFor: 
+    - 'publish-docker'
+    - 'create-sql-database'
+    - 'update-db'
+  args: ['./cloud-build-steps/deploy-cloud-run.sh']
+artifacts:
+  objects:
+    location: 'gs://$PROJECT_ID-$_REPO_NAME/$_APP_ENV/$BRANCH_NAME'
+    paths: ['artefacts/**/*']
+substitutions:
+    _GCP_REGION: asia-east1
+    _APP_ENV: PROD
+    _REPO_NAME: techtestapp
+    _DB_INSTANCE_SAFE_FILE: '/workspace/_instance_name_safe'
+    _DB_PASSWORD_FILE: '/workspace/_db_password'
