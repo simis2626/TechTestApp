@@ -10,7 +10,29 @@ GCP_FLAGS="-q --no-user-output-enabled"
 # Current Project
 project_name=$(gcloud config get-value project)
 
-echo -en "This script is about to add several roles to Cloud Build and Cloud Run Default Service Accounts within project: ${project_name}.\nIt will also enable the required APIs (see README.md) and create a service account specific to Cloud KMS Continue (Y/n)"
+echo -n "This script is about to:
+    - Enable the following APIs:
+      sqladmin.googleapis.com 
+      cloudbuild.googleapis.com 
+      run.googleapis.com 
+      cloudkms.googleapis.com
+      
+    - Add roles to Cloud Run Service Account:
+      cloudsql.client
+
+    - Add roles to Cloud Build Service Account:
+      cloudsql.admin
+      run.admin
+      iam.serviceAccountUser
+      cloudkms.cryptoKeyEncrypterDecrypter
+
+    - Create a Service account for CloudSQL connectivity in Cloud Build
+      cloudsql.client
+      
+    - Encrypt the Service Account Key with Cloud KMS
+    
+    Confirm you want to proceed using project: <project_id>.
+    Continue? (Y/n)"
 read -n 1 -r confirm
 echo
 if [[ ! $confirm =~ ^[Yy]$ ]]; then

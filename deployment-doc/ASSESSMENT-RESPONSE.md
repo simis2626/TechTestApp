@@ -37,8 +37,14 @@ Candidates will be assessed across the following categories:
 #### Security
 
 - Network segmentation (if applicable to the implementation)
+> CloudSQL is deployed with no 'Authorized Networks' meaning that it is totally inaccessible over IP. The only connection method is via unix sockets which requires the IAM role cloudsql.{client, admin}<br/>
+> Note the external IP is a requirement of Cloud Run (see [docs](https://cloud.google.com/sql/docs/postgres/connect-run#setting_up_a_instance))
 - Secret storage
+> Unencrypted secrets are available on the filesystem of the Cloud Builder, only during the duration of the build and are not persisted.</br>
+> Persistent secrets are encrypted with CloudKMS and stored on a GCS bucket which requires IAM access to GCS to access & KMS access to decrypt.
 - Platform security features
+> The use of unix sockets for CloudSQL connectivity is supported by the platform, and allows the CloudSQL instance to be totally blocked in terms of IP access (as well as having SSL required).
+
 
 #### Simplicity
 
