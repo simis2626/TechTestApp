@@ -1,18 +1,13 @@
 # Assessment
 
 Candidates should assume that the solution will be deployed to an empty cloud subscription with no existing infrastructure in place.
-
-There *should not* be a requirement for Servian to access a candidate's cloud services account to deploy this solution.
-
-Demonstrate regular commits and good git workflow practices.
-
-There is no time limit for this test.
+> Solution will need to ensure all APIs and account permissions are present.
 
 Candidates should provide documentation on their solution, including:
 
-- Pre requisites for your deployment solution.
-- High level architectural overview of your deployment.
-- Process instructions for provisioning your solution.
+- [Pre requisites for your deployment solution.](PREREQUISITES.md)
+- [High level architectural overview of your deployment.](ARCHITECTURE.md)
+- [Process instructions for provisioning your solution.](PROCESS_INSTRUCTIONS.md)
 
 ## Assessment Grading Criteria
 
@@ -21,9 +16,13 @@ Candidates should provide documentation on their solution, including:
 Candidates should take care to ensure that thier submission meets the following criteria:
 
 - Must be able to start from a cloned git repo.
+> Will provide init script and ability to submit builds from developer machine.
 - Must document any pre-requisites clearly.
+> [PREQUISITES.md](PREQUISITES.md)
 - Must be contained within a GitHub repository.
+> https://github.com/simis2626/TechTestApp
 - Must deploy via an automated process.
+> Using [Google Cloud Build](https://cloud.google.com/cloud-build)
 
 ### Grading
 
@@ -49,7 +48,12 @@ Candidates will be assessed across the following categories:
 #### Resiliency
 
 - Auto scaling and highly available frontend
+> Cloud Run is Regional (meaning that it will failover between zones).<br/>
+> Being 'serverless' it is also auto scaling (configurable)<br/>
+> Ref: https://cloud.google.com/run#all-features
 - Highly available Database
+> CloudSQL when started with `--availability-type=regional ` is highly available.<br/>
+> Ref: https://cloud.google.com/sql#all-features, https://cloud.google.com/sdk/gcloud/reference/sql/instances/create#--availability-type
 
 ## Tech Test Application
 
