@@ -23,7 +23,7 @@ steps:
   args: ['./cloud-build-steps/create-gcs-bucket.sh']
   env:
     - 'PROJECT_ID=$PROJECT_ID'
-    - 'REPO_NAME=${REPO_NAME,,}'
+    - 'REPO_NAME=${_REPO_NAME}'
     - '_GCP_REGION=$_GCP_REGION'
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'decrypt-cloudsql-updatedb-cred'
@@ -48,7 +48,7 @@ steps:
    - "_DB_PASSWORD_FILE=$_DB_PASSWORD_FILE"
    - "PROJECT_ID=$PROJECT_ID"
    - "_GCP_REGION=$_GCP_REGION"
-   - "REPO_NAME=${REPO_NAME,,}"
+   - "REPO_NAME=${_REPO_NAME}"
    - "_APP_ENV=$_APP_ENV"
    - "BRANCH_NAME=$BRANCH_NAME"
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -67,7 +67,7 @@ steps:
   args: ['./cloud-build-steps/build-docker.sh']
   env:
     - 'PROJECT_ID=$PROJECT_ID'
-    - 'REPO_NAME=${REPO_NAME,,}'
+    - 'REPO_NAME=${_REPO_NAME}'
     - 'BUILD_ID=$BUILD_ID'
 - name: 'gcr.io/cloud-builders/docker'
   id: 'publish-docker'
@@ -85,7 +85,7 @@ steps:
   args: ['./cloud-build-steps/update-db.sh']
   env:
     - 'PROJECT_ID=$PROJECT_ID'
-    - 'REPO_NAME=${REPO_NAME,,}'
+    - 'REPO_NAME=${_REPO_NAME}'
     - 'BUILD_ID=$BUILD_ID'
     - "_DB_INSTANCE_SAFE_FILE=$_DB_INSTANCE_SAFE_FILE"
     - '_GCP_REGION=$_GCP_REGION'
@@ -93,7 +93,7 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   env:
-    - 'REPO_NAME=${REPO_NAME,,}'
+    - 'REPO_NAME=${_REPO_NAME}'
     - 'PROJECT_ID=$PROJECT_ID'
     - 'BUILD_ID=$BUILD_ID'
     - '_GCP_REGION=$_GCP_REGION'
@@ -106,3 +106,13 @@ steps:
     - 'create-sql-database'
     - 'update-db'
   args: ['./cloud-build-steps/deploy-cloud-run.sh']
+artifacts:
+  objects:
+    location: 'gs://$PROJECT_ID-$_REPO_NAME/$_APP_ENV/$BRANCH_NAME'
+    paths: ['artefacts/**/*']
+substitutions:
+    _GCP_REGION: asia-east1
+    _APP_ENV: PROD
+    _REPO_NAME: techtestapp
+    _DB_INSTANCE_SAFE_FILE: '/workspace/_instance_name_safe'
+    _DB_PASSWORD_FILE: '/workspace/_db_password'
